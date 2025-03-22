@@ -3,7 +3,7 @@ import { Server as SocketServer, Socket } from "socket.io";
 import { SOCKET_EVENTS } from "@utils/enums";
 import RoomManager from "@app/rooms";
 import { RoomPlayer } from "@utils/types";
-import { Bug } from "@utils/types";
+import { Bug, Bullet } from "@utils/types";
 
 export default class AppSocket {
   private static _instance: AppSocket | null = null;
@@ -76,7 +76,7 @@ export default class AppSocket {
           // Broadcast to room that player left
           AppSocket.broadcastMessage(
             SOCKET_EVENTS.PLAYER_LEFT,
-            { room: updateRoom, playerId: data.playerId },
+            { room: updateRoom, roomId: data.roomId, playerId: data.playerId },
             data.roomId
           );
         } catch (err: any) {
@@ -209,6 +209,7 @@ export default class AppSocket {
           AppSocket.broadcastMessage(
             SOCKET_EVENTS.PLAYER_MOVED,
             {
+              room: updatedRoom,
               playerId: data.playerId,
               position: data.position,
             },
@@ -225,6 +226,104 @@ export default class AppSocket {
         }
       }
     );
+
+    // Fire bullet event
+    socket.on(
+      SOCKET_EVENTS.FIRE_BULLET,
+      async (data: { roomId: string; playerId: string; bullet: Bullet }) => {
+        try {
+          const roomManager = new RoomManager();
+          const updatedRoom = roomManager.addBulletToPlayer(
+            data.roomId,
+            data.playerId,
+            data.bullet
+          );
+
+          // Broadcast to room that a bullet was fired
+          AppSocket.broadcastMessage(
+            SOCKET_EVENTS.BULLET_FIRED,
+            {
+              room: updatedRoom,
+              playerId: data.playerId,
+              bullet: data.bullet,
+            },
+            data.roomId
+          );
+        } catch (err: any) {
+          const errorMsg = err?.message || "Error firing bullet";
+          this.sendSocketErrorMessage(socket, errorMsg);
+          console.error(`⚡🔴 Error firing bullet`, err?.message, err);
+        }
+      }
+    );
+
+    // Update bullet positions event
+    socket.on(
+      SOCKET_EVENTS.UPDATE_BULLETS,
+      async (data: { roomId: string; playerId: string; bullets: Bullet[] }) => {
+        try {
+          const roomManager = new RoomManager();
+          const updatedRoom = roomManager.updatePlayerBullets(
+            data.roomId,
+            data.playerId,
+            data.bullets
+          );
+
+          // Broadcast updated bullet positions to room
+          AppSocket.broadcastMessage(
+            SOCKET_EVENTS.BULLETS_UPDATED,
+            {
+              room: updatedRoom,
+              playerId: data.playerId,
+              bullets: data.bullets,
+            },
+            data.roomId
+          );
+        } catch (err: any) {
+          const errorMsg = err?.message || "Error updating bullets";
+          this.sendSocketErrorMessage(socket, errorMsg);
+          console.error(`⚡🔴 Error updating bullets`, err?.message, err);
+        }
+      }
+    );
+
+    // Game over event
+    socket.on(SOCKET_EVENTS.GAME_OVER, async (data: { roomId: string }) => {
+      try {
+        const roomManager = new RoomManager();
+        const updatedRoom = roomManager.setRoomStatus(data.roomId, "over");
+
+        // Broadcast to room that game is over
+        AppSocket.broadcastMessage(
+          SOCKET_EVENTS.GAME_OVER,
+          { room: updatedRoom },
+          data.roomId
+        );
+      } catch (err: any) {
+        const errorMsg = err?.message || "Error ending game";
+        this.sendSocketErrorMessage(socket, errorMsg);
+        console.error(`⚡🔴 Error ending game`, err?.message, err);
+      }
+    });
+
+    // Restart game event
+    socket.on(SOCKET_EVENTS.RESTART_GAME, async (data: { roomId: string }) => {
+      try {
+        const roomManager = new RoomManager();
+        const updatedRoom = roomManager.restartRoom(data.roomId);
+
+        // Broadcast to room that game is restarting
+        AppSocket.broadcastMessage(
+          SOCKET_EVENTS.GAME_RESTARTED,
+          { room: updatedRoom },
+          data.roomId
+        );
+      } catch (err: any) {
+        const errorMsg = err?.message || "Error restarting game";
+        this.sendSocketErrorMessage(socket, errorMsg);
+        console.error(`⚡🔴 Error restarting game`, err?.message, err);
+      }
+    });
   }
 
   private sendSocketErrorMessage(socket: Socket, message: string) {

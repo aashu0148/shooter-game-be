@@ -18,4 +18,11 @@ export enum SOCKET_EVENTS {
   BUG_HEALTH_UPDATED = "bug_health_updated",
   PLAYER_MOVE = "player_move",
   PLAYER_MOVED = "player_moved",
+  FIRE_BULLET = "fire_bullet",
+  BULLET_FIRED = "bullet_fired",
+  UPDATE_BULLETS = "update_bullets",
+  BULLETS_UPDATED = "bullets_updated",
+  GAME_OVER = "game_over",
+  RESTART_GAME = "game_restart",
+  GAME_RESTARTED = "game_restarted",
 }

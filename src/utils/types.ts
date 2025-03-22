@@ -3,6 +3,7 @@ export interface RoomPlayer {
   name: string;
   lastActiveAt: Date;
   position: Position;
+  bullets: Bullet[];
 }
 
 export interface Room {
@@ -12,6 +13,8 @@ export interface Room {
   updatedAt: Date;
   bugs: Bug[];
   maxBugs: number;
+  score: number;
+  status: "over" | "playing";
 }
 
 export interface Position {
@@ -20,6 +23,7 @@ export interface Position {
 }
 
 export interface Bullet extends Position {
+  id: string;
   active: boolean;
 }
 

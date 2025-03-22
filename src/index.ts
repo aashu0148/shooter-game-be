@@ -17,13 +17,21 @@ const app: Express = express();
 const server: http.Server = http.createServer(app);
 const io: SocketServer = new SocketServer(server, {
   cors: {
-    origin: "*",
+    origin: ALLOWED_ORIGINS,
   },
 });
 
-app.use(cors());
+app.use(
+  cors({
+    origin: ALLOWED_ORIGINS,
+  })
+);
 app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ limit: "5mb", extended: true }));
+
+app.get("/hi", (req, res) => {
+  res.send("hi");
+});
 
 server.listen(appEnvs.PORT, () => {
   console.log(`🚀 Backend is up at port ${appEnvs.PORT}`);

@@ -1,4 +1,4 @@
-import { Bug, Position, Room, RoomPlayer } from "@utils/types";
+import { Bug, Bullet, Position, Room, RoomPlayer } from "@utils/types";
 
 const MAX_ROOM_PLAYERS = 4;
 export default class RoomManager {
@@ -19,6 +19,8 @@ export default class RoomManager {
       createdAt: new Date(),
       updatedAt: new Date(),
       maxBugs,
+      score: 0,
+      status: "playing",
     };
     this.rooms.push(room);
     return room;
@@ -35,6 +37,7 @@ export default class RoomManager {
     room.players.push({
       ...player,
       lastActiveAt: new Date(),
+      bullets: [],
     });
     room.updatedAt = new Date();
     return room;
@@ -95,10 +98,17 @@ export default class RoomManager {
     return room;
   }
 
-  // Remove a bug from room
+  // Remove a bug from room and update score
   removeBugFromRoom(roomId: string, bugId: string): Room {
     const room = this.findRoom(roomId);
     if (!room) throw new Error("Room not found");
+
+    // Find the bug to get its level before removing it
+    const killedBug = room.bugs.find((bug) => bug.id === bugId);
+    if (killedBug) {
+      // Update score based on bug level (1-4 points)
+      room.score = (room.score || 0) + killedBug.level;
+    }
 
     room.bugs = room.bugs.filter((bug) => bug.id !== bugId);
     room.updatedAt = new Date();
@@ -133,6 +143,63 @@ export default class RoomManager {
     if (!player) throw new Error("Player not found in room");
 
     player.position = position;
+    room.updatedAt = new Date();
+    return room;
+  }
+
+  // Add a bullet to a player's bullets array
+  addBulletToPlayer(roomId: string, playerId: string, bullet: Bullet): Room {
+    const room = this.findRoom(roomId);
+    if (!room) throw new Error("Room not found");
+
+    const player = room.players.find((p) => p.id === playerId);
+    if (!player) return room;
+
+    player.bullets = player.bullets || [];
+    player.bullets.push(bullet);
+    room.updatedAt = new Date();
+    return room;
+  }
+
+  // Update all bullets for a player
+  updatePlayerBullets(
+    roomId: string,
+    playerId: string,
+    bullets: Bullet[]
+  ): Room {
+    const room = this.findRoom(roomId);
+    if (!room) throw new Error("Room not found");
+
+    const player = room.players.find((p) => p.id === playerId);
+    if (!player) return room;
+
+    player.bullets = bullets;
+    room.updatedAt = new Date();
+    return room;
+  }
+
+  // Set room status
+  setRoomStatus(roomId: string, status: "playing" | "over"): Room {
+    const room = this.findRoom(roomId);
+    if (!room) throw new Error("Room not found");
+
+    room.status = status;
+    room.updatedAt = new Date();
+    return room;
+  }
+
+  // Restart room
+  restartRoom(roomId: string): Room {
+    const room = this.findRoom(roomId);
+    if (!room) throw new Error("Room not found");
+
+    room.status = "playing";
+    room.score = 0;
+    room.bugs = [];
+    room.players = room.players.map((player) => ({
+      ...player,
+      bullets: [],
+    }));
     room.updatedAt = new Date();
     return room;
   }
