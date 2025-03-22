@@ -8,7 +8,11 @@ import AppSocket from "@app/socket";
 import { appEnvs } from "@utils/configs";
 import RoomCleaner from "@app/cleaner";
 
-const ALLOWED_ORIGINS = ["http://localhost:3000", "http://localhost:3001"];
+const ALLOWED_ORIGINS = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "https://shooter-vibe.netlify.app/",
+];
 const app: Express = express();
 const server: http.Server = http.createServer(app);
 const io: SocketServer = new SocketServer(server, {
