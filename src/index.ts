@@ -11,13 +11,13 @@ import RoomCleaner from "@app/cleaner";
 const ALLOWED_ORIGINS = [
   "http://localhost:3000",
   "http://localhost:3001",
-  "https://shooter-vibe.netlify.app/",
+  "https://shooter-vibe.netlify.app",
 ];
 const app: Express = express();
 const server: http.Server = http.createServer(app);
 const io: SocketServer = new SocketServer(server, {
   cors: {
-    origin: ALLOWED_ORIGINS,
+    origin: ["*"],
   },
 });
 
