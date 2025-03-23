@@ -136,11 +136,18 @@ export default class AppSocket {
       async (data: { roomId: string; bugId: string; playerId: string }) => {
         try {
           const roomManager = new RoomManager();
-          roomManager.removeBugFromRoom(data.roomId, data.bugId);
+          const updatedRoom = roomManager.removeBugFromRoom(
+            data.roomId,
+            data.bugId
+          );
 
           AppSocket.broadcastMessage(
             SOCKET_EVENTS.BUG_KILLED,
-            { bugId: data.bugId, playerId: data.playerId },
+            {
+              bugId: data.bugId,
+              playerId: data.playerId,
+              score: updatedRoom.score,
+            },
             data.roomId
           );
         } catch (err: any) {
