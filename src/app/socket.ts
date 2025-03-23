@@ -114,12 +114,12 @@ export default class AppSocket {
       async (data: { roomId: string; bug: Bug }) => {
         try {
           const roomManager = new RoomManager();
-          const updatedRoom = roomManager.addBugToRoom(data.roomId, data.bug);
+          roomManager.addBugToRoom(data.roomId, data.bug);
 
-          // Broadcast to room that a new bug was added
+          // Only send the new bug info
           AppSocket.broadcastMessage(
             SOCKET_EVENTS.BUG_ADDED,
-            { room: updatedRoom, bug: data.bug },
+            { bugId: data.bug.id, bug: data.bug },
             data.roomId
           );
         } catch (err: any) {
@@ -136,19 +136,11 @@ export default class AppSocket {
       async (data: { roomId: string; bugId: string; playerId: string }) => {
         try {
           const roomManager = new RoomManager();
-          const updatedRoom = roomManager.removeBugFromRoom(
-            data.roomId,
-            data.bugId
-          );
+          roomManager.removeBugFromRoom(data.roomId, data.bugId);
 
-          // Broadcast to room that a bug was killed
           AppSocket.broadcastMessage(
             SOCKET_EVENTS.BUG_KILLED,
-            {
-              room: updatedRoom,
-              bugId: data.bugId,
-              playerId: data.playerId,
-            },
+            { bugId: data.bugId, playerId: data.playerId },
             data.roomId
           );
         } catch (err: any) {
@@ -165,20 +157,11 @@ export default class AppSocket {
       async (data: { roomId: string; bugId: string; health: number }) => {
         try {
           const roomManager = new RoomManager();
-          const updatedRoom = roomManager.updateBugHealth(
-            data.roomId,
-            data.bugId,
-            data.health
-          );
+          roomManager.updateBugHealth(data.roomId, data.bugId, data.health);
 
-          // Broadcast to room that bug health was updated
           AppSocket.broadcastMessage(
             SOCKET_EVENTS.BUG_HEALTH_UPDATED,
-            {
-              room: updatedRoom,
-              bugId: data.bugId,
-              health: data.health,
-            },
+            { bugId: data.bugId, health: data.health },
             data.roomId
           );
         } catch (err: any) {
@@ -199,20 +182,15 @@ export default class AppSocket {
       }) => {
         try {
           const roomManager = new RoomManager();
-          const updatedRoom = roomManager.updatePlayerPosition(
+          roomManager.updatePlayerPosition(
             data.roomId,
             data.playerId,
             data.position
           );
 
-          // Broadcast player movement to other players in room
           AppSocket.broadcastMessage(
             SOCKET_EVENTS.PLAYER_MOVED,
-            {
-              room: updatedRoom,
-              playerId: data.playerId,
-              position: data.position,
-            },
+            { playerId: data.playerId, position: data.position },
             data.roomId
           );
         } catch (err: any) {
@@ -233,20 +211,15 @@ export default class AppSocket {
       async (data: { roomId: string; playerId: string; bullet: Bullet }) => {
         try {
           const roomManager = new RoomManager();
-          const updatedRoom = roomManager.addBulletToPlayer(
+          roomManager.addBulletToPlayer(
             data.roomId,
             data.playerId,
             data.bullet
           );
 
-          // Broadcast to room that a bullet was fired
           AppSocket.broadcastMessage(
             SOCKET_EVENTS.BULLET_FIRED,
-            {
-              room: updatedRoom,
-              playerId: data.playerId,
-              bullet: data.bullet,
-            },
+            { playerId: data.playerId, bullet: data.bullet },
             data.roomId
           );
         } catch (err: any) {
